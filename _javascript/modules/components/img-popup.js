@@ -9,28 +9,11 @@ const lightImages = '.popup:not(.dark)';
 const darkImages = '.popup:not(.light)';
 let selector = lightImages;
 
-if (
-  (html.hasAttribute('data-mode') &&
-    html.getAttribute('data-mode') === 'dark') ||
-  (!html.hasAttribute('data-mode') &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches)
-) {
-  selector = darkImages;
-}
-
-let lightbox = GLightbox({ selector: `${selector}` });
-
-function updateImages(event) {
-  if (
-    event.source === window &&
-    event.data &&
-    event.data.direction === ModeToggle.ID
-  ) {
-    if (selector === lightImages) {
-      selector = darkImages;
-    } else {
-      selector = lightImages;
-    }
+function updateImages(lightbox) {
+  if (selector === lightImages) {
+    selector = darkImages;
+  } else {
+    selector = lightImages;
   }
 
   lightbox.destroy();
@@ -38,11 +21,30 @@ function updateImages(event) {
 }
 
 export function imgPopup() {
-  if (document.querySelector(`${selector}`) === null) {
+  if (document.querySelector('.popup') === null) {
     return;
   }
 
+  if (
+    (html.hasAttribute('data-mode') &&
+      html.getAttribute('data-mode') === 'dark') ||
+    (!html.hasAttribute('data-mode') &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches)
+  ) {
+    selector = darkImages;
+  }
+
+  let lightbox = GLightbox({ selector: `${selector}` });
+
   if (document.getElementById('mode-toggle')) {
-    window.addEventListener('message', updateImages);
+    window.addEventListener('message', (event) => {
+      if (
+        event.source === window &&
+        event.data &&
+        event.data.direction === ModeToggle.ID
+      ) {
+        updateImages(lightbox);
+      }
+    });
   }
 }
